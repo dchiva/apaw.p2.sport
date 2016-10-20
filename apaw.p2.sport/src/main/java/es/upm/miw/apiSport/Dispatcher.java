@@ -1,17 +1,16 @@
 package es.upm.miw.apiSport;
 
-import es.upm.miw.apiSport.api.ThemeResource;
-import es.upm.miw.apiSport.api.VoteResource;
+import es.upm.miw.apiSport.api.SportResource;
+import es.upm.miw.apiSport.api.UserResource;
 import es.upm.miw.apiSport.exceptions.InvalidRequestException;
-import es.upm.miw.apiSport.exceptions.InvalidThemeFieldException;
 import es.upm.miw.web.http.HttpRequest;
 import es.upm.miw.web.http.HttpResponse;
 import es.upm.miw.web.http.HttpStatus;
 
 public class Dispatcher {
 
-	private ThemeResource themeResource = new ThemeResource();
-	private VoteResource voteResource = new VoteResource();
+	private UserResource userResource = new UserResource();
+	private SportResource sportResource = new SportResource();
 
 	private void responseError(HttpResponse response, Exception e) {
 		response.setBody("{\"error\":\"" + e + "\"}");
@@ -20,18 +19,32 @@ public class Dispatcher {
 
 	public void doGet(HttpRequest request, HttpResponse response) {
 		// **/themes
-		if ("themes".equals(request.getPath())) {
-			response.setBody(themeResource.themeList().toString());
+		
+		if ("users".equals(request.getPath())) {
+			
+			response.setBody(userResource.getUsers().toString());
+			//response.setBody(themeResource.themeList().toString());
 			// **/themes/{id}/overage
-		} else if ("themes".equals(request.paths()[0]) && "overage".equals(request.paths()[2])) {
-			try {
+			
+			
+		} else if (request.paths().length==2 && "users".equals(request.paths()[0]) && request.paths()[1].indexOf("search")==0) {
+			System.out.println("Entra en search");
+			try{
+				String[] parametersGET=request.paths()[1].split("[?]");
+				String[] sportParameter=parametersGET[1].split("=");
+				String sportName=sportParameter[1];
+				response.setBody(userResource.getUsersBySport(sportName).toString());
+			}catch(Exception e){
+				e.printStackTrace();
+				responseError(response, e);
+			}
+			/*try {
 				response.setBody(themeResource.themeOverage(Integer.valueOf(request.paths()[1])).toString());
 			} catch (Exception e) {
 				responseError(response, e);
-			}
+			}*/
 			// **/votes
-		} else if ("votes".equals(request.getPath())) {
-			response.setBody(voteResource.voteList().toString());
+			
 		} else {
 			responseError(response, new InvalidRequestException(request.getPath()));
 		}
@@ -39,46 +52,61 @@ public class Dispatcher {
 
 	public void doPost(HttpRequest request, HttpResponse response) {
 		switch (request.getPath()) {
-		// POST **/themes body="themeName"
-		case "themes":
-			// Injectar parámetros...
-			try {
-				themeResource.createTheme(request.getBody());
-				response.setStatus(HttpStatus.CREATED);
-			} catch (InvalidThemeFieldException e) {
-				this.responseError(response, e);
-			}
-			break;
-		// POST votes body="themeId:vote"
-		case "votes":
-			String themeId = request.getBody().split(":")[0];
-			String vote = request.getBody().split(":")[1];
-			try {
-				voteResource.createVote(Integer.valueOf(themeId), Integer.valueOf(vote));
-				response.setStatus(HttpStatus.CREATED);
-			} catch (Exception e) {
-				responseError(response, e);
-			}
-			break;
-		default:
-			responseError(response, new InvalidRequestException(request.getPath()));
-			break;
+			
+			case "users":
+				try{
+					String[] bodyParams=request.getBody().split(":");
+					String nick=bodyParams[0];
+					String email=bodyParams[1];
+					userResource.createUser(nick, email);
+					response.setBody("{\"succes\":\"Usuario creado correctamente\"}");
+					response.setStatus(HttpStatus.CREATED);
+				}catch(Exception e){
+					this.responseError(response, e);
+				}
+				break;
+				
+			case "sports":
+				try{
+					String sportName=request.getBody();
+					sportResource.createSport(sportName);
+					response.setBody("{\"succes\":\"Deporte creado correctamente\"}");
+					response.setStatus(HttpStatus.CREATED);
+				}catch(Exception e){
+					this.responseError(response, e);
+				}
+				break;
+				
+			default:
+				responseError(response, new InvalidRequestException(request.getPath()));
+				break;
 		}
 	}
 
 	public void doPut(HttpRequest request, HttpResponse response) {
-		switch (request.getPath()) {
-		default:
+		if ("users".equals(request.paths()[0]) && "sport".equals(request.paths()[2])) {
+			
+			try {
+				String userNick=request.paths()[1];
+				String sportName=request.getBody();
+				userResource.addUserSport(userNick, sportName);
+				response.setBody("{\"succes\":\"Deporte añadido correctamente al usuario\"}");
+				//response.setBody(themeResource.themeOverage(Integer.valueOf(request.paths()[1])).toString());
+			} catch (Exception e) {
+				responseError(response, e);
+			}
+			
+		}else {
 			responseError(response, new InvalidRequestException(request.getPath()));
-			break;
 		}
+		
 	}
 
 	public void doDelete(HttpRequest request, HttpResponse response) {
 		switch (request.getPath()) {
-		default:
-			responseError(response, new InvalidRequestException(request.getPath()));
-			break;
+			default:
+				responseError(response, new InvalidRequestException(request.getPath()));
+				break;
 		}
 	}
 

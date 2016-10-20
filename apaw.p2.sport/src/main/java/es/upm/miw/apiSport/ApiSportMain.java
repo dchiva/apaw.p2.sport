@@ -7,57 +7,85 @@ import es.upm.miw.web.http.HttpRequest;
 import es.upm.miw.web.http.HttpResponse;
 import upm.jbb.IO;
 
-public class ApiArchitectureMain {
+public class ApiSportMain {
 
 	private Server server = new Server();
 
 	private HttpRequest request = new HttpRequest();
 
 	public void help() {
-		IO.getIO().println("GET **/themes");
-		IO.getIO().println("POST **/themes   body=\"themeName\"");
-		IO.getIO().println("GET **/themes/{id}/overage");
-		IO.getIO().println("POST **/votes   body=\"themeId:vote\"");
-		IO.getIO().println("GET **/votes");
+		IO.getIO().println("GET **/users");
+		IO.getIO().println("GET **/users/search?sport=*");
+		IO.getIO().println("POST **/users   body=\"nick:email\"");
+		IO.getIO().println("POST **/sports   body=\"sportName\"");
+		IO.getIO().println("PUT **/users/{nick}/sport body=\"sportName\"");
 	}
 
 	public void demo() {
+		/*request.setMethod(HttpMethod.GET);
+		request.setPath("users/search?sport=tenis");
+		this.request();*/
+		
 		request.setMethod(HttpMethod.POST);
-		request.setPath("themes");
-		request.setBody("uno");
+		request.setPath("users");
+		request.setBody("uno:uno@gmail.com");
 		this.request();
-		request.setBody("dos");
+		
+		request.setMethod(HttpMethod.POST);
+		request.setPath("users");
+		request.setBody("dos:dos@gmail.com");
 		this.request();
-		request.setPath("votes");
-		request.setBody("1:4");
+		
+		request.setMethod(HttpMethod.POST);
+		request.setPath("users");
+		request.setBody("uno:tres@gmail.com");
 		this.request();
-		request.setBody("1:5");
-		this.request();
-		request.setBody("2:5");
-		this.request();
-		request.setBody("2:6");
-		this.request();
+		
 		request.setMethod(HttpMethod.GET);
-		request.setPath("votes");
-		request.clearQueryParams();
-		request.setBody("");
+		request.setPath("users");
 		this.request();
-		request.setPath("themes");
-		this.request();
-		request.setPath("themes/1/overage");
-		this.request();
-		request.setPath("themes/2/overage");
-		this.request();
-		//Exceptions
-		request.setPath("noValid");
-		this.request();
-		request.setPath("themes/x/overage");
-		this.request();
-		request.setPath("themes/99/overage");
-		this.request();
+		
 		request.setMethod(HttpMethod.POST);
-		request.setPath("votes");
-		request.setBody("99:4");
+		request.setPath("sports");
+		request.setBody("tenis");
+		this.request();
+		
+		request.setMethod(HttpMethod.POST);
+		request.setPath("sports");
+		request.setBody("tenis");
+		this.request();
+		
+		request.setMethod(HttpMethod.POST);
+		request.setPath("sports");
+		request.setBody("ajedrez");
+		this.request();
+		
+		request.setMethod(HttpMethod.PUT);
+		request.setPath("users/uno/sport");
+		request.setBody("tenis");
+		this.request();
+		
+		request.setMethod(HttpMethod.PUT);
+		request.setPath("users/uno/sport");
+		request.setBody("noDeporte");
+		this.request();
+		
+		request.setMethod(HttpMethod.PUT);
+		request.setPath("users/dos/sport");
+		request.setBody("tenis");
+		this.request();
+		
+		request.setMethod(HttpMethod.PUT);
+		request.setPath("users/dos/sport");
+		request.setBody("ajedrez");
+		this.request();
+		
+		request.setMethod(HttpMethod.GET);
+		request.setPath("users/search?sport=tenis");
+		this.request();
+		
+		request.setMethod(HttpMethod.POST);
+		request.setPath("noPath");
 		this.request();
 	}
 
@@ -96,7 +124,7 @@ public class ApiArchitectureMain {
 	}
 
 	public static void main(String[] args) {
-		ApiArchitectureMain main = new ApiArchitectureMain();
+		ApiSportMain main = new ApiSportMain();
 		IO.getIO().addView(main);
 		main.showStatus();
 		DaoFactory.setFactory(new DaoFactoryMemory());
